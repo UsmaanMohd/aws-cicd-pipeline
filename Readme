@@ -1,0 +1,379 @@
+🚀 Automated CI/CD Pipeline on AWS
+Project Overview
+This project demonstrates a fully automated CI/CD (Continuous Integration and Continuous Deployment) pipeline built on AWS cloud infrastructure. Every time code is pushed to GitHub, Jenkins automatically builds, tests, and deploys the application to AWS EC2 — with zero manual intervention!
+
+🎯 Problem This Project Solves
+Before CI/CD (Manual Way):
+Developer writes code
+Someone manually downloads it
+Someone manually builds it
+Someone manually tests it
+Someone manually deploys it
+Takes hours or days
+Human errors happen frequently
+Inconsistent deployments
+
+After CI/CD (This Project):
+Developer writes code
+Types: git push
+Everything else happens automatically
+Deployed within a minute
+Zero human errors
+Consistent every time
+
+🏗️ Architecture
+Developer Laptop
+       |
+       | git push
+       |
+GitHub Repository
+       |
+       | Webhook triggers automatically
+       |
+Jenkins on AWS EC2
+       |
+       |-- Stage 1: Pull code from GitHub
+       |-- Stage 2: Install dependencies
+       |-- Stage 3: Run automated tests
+       |-- Stage 4: Build Docker image
+       |-- Stage 5: Deploy container
+       |-- Stage 6: Verify deployment
+       |
+       |
+Application Live on EC2 (Port 3000)
+       |
+       |
+CloudWatch Monitoring
+       |
+       |
+SNS Email Alerts
+
+
+---
+
+## Tools & Technologies Used
+
+### AWS Services:
+| Service | Purpose |
+|---------|---------|
+| EC2 | Cloud server hosting Jenkins and app |
+| VPC | Private network for security |
+| Subnet | Network segment for EC2 |
+| Internet Gateway | Internet connectivity |
+| Security Groups | Firewall rules |
+| IAM | Access management and permissions |
+| CloudWatch | Server monitoring and alarms |
+| SNS | Email alert notifications |
+
+### DevOps Tools:
+| Tool | Purpose |
+|------|---------|
+| Jenkins | CI/CD automation server |
+| Docker | Application containerization |
+| Git | Version control |
+| GitHub | Code repository and webhooks |
+| Node.js | Application runtime |
+| Linux | Server operating system |
+
+---
+
+## Pipeline Stages
+
+### Stage 1: Checkout
+```
+Pulls latest code from GitHub repository
+automatically when webhook triggers
+```
+### Stage 2: Install Dependencies
+```
+Runs npm install to download all
+Node.js libraries the app needs
+```
+### Stage 3: Run Tests
+```
+Runs npm test to verify code works
+If tests fail → pipeline stops here
+Broken code never reaches production!
+```
+### Stage 4: Build Docker Image
+```
+Runs docker build to package the app
+with all its dependencies into a
+portable container image
+```
+### Stage 5: Deploy Container
+```
+Stops old container
+Starts new container with latest code
+App immediately updated for users
+```
+### Stage 6: Verify Deployment
+```
+Confirms container is running
+Verifies deployment was successful
+Pipeline marked as SUCCESS ✅
+```
+
+## Infrastructure Setup
+
+**VPC Configuration:**
+```
+VPC CIDR: 10.0.0.0/16
+Subnet: 10.0.1.0/24 (Public)
+Internet Gateway: Attached
+Route Table: 0.0.0.0/0 → IGW
+```
+
+**Security Group Rules:**
+```
+Port 22   → SSH (My IP only)
+Port 8080 → Jenkins UI (Public)
+Port 3000 → Web App (Public)
+```
+
+**EC2 Configuration:**
+```
+Instance Type: t3.small
+AMI: Amazon Linux 2023
+Storage: 20GB gp2
+Java: Amazon Corretto 21
+```
+
+**IAM Role Permissions:**
+```
+AmazonS3FullAccess
+CloudWatchAgentServerPolicy
+AmazonEC2ContainerRegistryFullAccess
+```
+
+## Project Structure
+
+| File | Purpose |
+|------|---------|
+| app.js | Main Node.js application |
+| package.json | App dependencies and scripts |
+| Dockerfile | Docker container configuration |
+| Jenkinsfile | CI/CD pipeline definition |
+| .dockerignore | Files excluded from Docker |
+| README.md | Project documentation |
+
+## Docker Configuration
+
+**Dockerfile:**
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["node", "app.js"]
+```
+
+**Why Docker?**
+- Packages app with all dependencies
+- Runs identically on any server
+- Easy to scale and update
+- No "works on my machine" problem
+
+## Jenkins Pipeline (Jenkinsfile)
+
+```groovy
+pipeline {
+    agent any
+    
+    environment {
+        APP_NAME = "jenkins-cicd-app"
+        APP_PORT = "3000"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${APP_NAME}:latest ."
+            }
+        }
+        stage('Deploy Container') {
+            steps {
+                sh "docker stop ${APP_NAME} || true"
+                sh "docker rm ${APP_NAME} || true"
+                sh "docker run -d --name ${APP_NAME} -p ${APP_PORT}:${APP_PORT} ${APP_NAME}:latest"
+            }
+        }
+        stage('Verify Deployment') {
+            steps {
+                sh 'docker ps | grep jenkins-cicd-app'
+            }
+        }
+    }
+}
+```
+
+## Monitoring & Alerting
+
+**CloudWatch Alarm:**
+```
+Alarm Name: jenkins-high-cpu
+Metric: CPUUtilization
+Threshold: > 80%
+Period: 5 minutes
+Action: Send SNS notification
+```
+
+**SNS Alert:**
+```
+Topic: jenkins-alerts
+Subscriber: Email notification
+Trigger: CloudWatch alarm
+Result: Instant email alert
+```
+
+## How to Run This Project
+
+**Prerequisites:**
+✅ AWS Account
+✅ GitHub Account
+✅ Basic Linux knowledge
+
+**Step 1: Set Up AWS Infrastructure**
+```
+# Create VPC (10.0.0.0/16)
+# Create Public Subnet (10.0.1.0/24)
+# Create Internet Gateway
+# Update Route Table
+# Create Security Group (ports 22, 8080, 3000)
+# Create IAM Role
+# Launch EC2 (Amazon Linux 2023, t3.small)
+```
+
+**Step 2: Install Tools on EC2**
+```bash
+# Install Java 21
+sudo yum install -y java-21-amazon-corretto
+
+# Install Git
+sudo yum install git -y
+
+# Install Docker
+sudo yum install docker -y
+sudo systemctl start docker
+sudo usermod -aG docker ec2-user
+
+# Install Node.js/npm (needed for Jenkins build stages)
+sudo yum install -y nodejs npm
+
+# Install Jenkins
+sudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import \
+    https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+sudo yum install jenkins -y
+sudo systemctl start jenkins
+
+# Allow Jenkins to run Docker commands
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
+```
+
+**Step 3: Configure Jenkins**
+```
+Access Jenkins: http://EC2_IP:8080
+Install suggested plugins
+Create admin user
+Install additional plugins:
+  - Git plugin
+  - Docker Pipeline
+  - GitHub Integration
+  - Pipeline
+```
+
+**Step 4: Create Pipeline Job**
+```
+New Item → Pipeline
+Name: cicd-pipeline
+Definition: Pipeline script from SCM
+SCM: Git
+Repository URL: your GitHub repo
+Branch: */main
+Script Path: Jenkinsfile
+Build Trigger: GitHub hook trigger
+```
+
+**Step 5: Set Up GitHub Webhook**
+```
+GitHub Repo → Settings → Webhooks
+Payload URL: http://EC2_IP:8080/github-webhook/
+Content type: application/json
+Events: Push events
+```
+
+**Step 6: Deploy!**
+```bash
+git add .
+git commit -m "Deploy my app"
+git push origin main
+# Watch Jenkins automatically deploy! 🎉
+```
+
+## Challenges Faced & How I Solved Them
+
+- **Jenkins node going offline due to disk space threshold:** Jenkins's built-in disk-space monitor marked the built-in node offline because AWS's default `/tmp` tmpfs partition (~955 MB) is smaller than Jenkins's default 1 GB free-space threshold — even though actual disk usage was very low. Fixed by lowering the free-space threshold in Jenkins's node configuration (Manage Jenkins → Nodes → Built-In Node → Configure).
+- **Pipeline failing at the "Run Tests" stage:** `npm init` generated a default `package.json` with `"test": "echo \"Error: no test specified\" && exit 1"`, which always fails since no real test suite exists yet. Fixed by updating the script to `exit 0`. Also found and fixed a mismatch where `package.json`'s `main` field pointed to `index.js` while the actual server file was `app.js`.
+- **EC2 Public IP changing after stop/start:** Since an Elastic IP wasn't attached, stopping and restarting the EC2 instance assigned a new public IP each time, breaking the GitHub webhook and SSH access. Solved by updating the Security Group's SSH source, the webhook payload URL, and Jenkins/app URLs each time — and identified attaching an Elastic IP as the permanent fix for production use.
+
+## Results & Achievements
+
+✅ Fully automated deployment on every `git push`
+✅ Manual deployment work eliminated
+✅ Automated testing on every push — broken code never reaches production
+✅ Zero-downtime container redeployment
+✅ Full CPU monitoring and email alerting via CloudWatch + SNS
+✅ Containerized application with Docker
+✅ Infrastructure built from scratch on AWS (VPC, EC2, IAM, Security Groups)
+
+## Key Learnings
+
+- How CI/CD eliminates manual deployments
+- Docker containerization and image layer caching in production
+- AWS infrastructure setup from scratch
+- Jenkins pipeline configuration and plugin management
+- GitHub webhook integration
+- Monitoring and alerting best practices (CloudWatch + SNS)
+- Security with VPC, IAM, Security Groups
+- Linux server management
+- Real-world debugging of CI/CD pipeline failures
+
+## Future Improvements
+
+→ Add Kubernetes (EKS) for orchestration
+→ Add Terraform for infrastructure as code
+→ Add Ansible for configuration management
+→ Add multiple environments (dev/staging/prod)
+→ Push Docker images to ECR instead of building locally on the same EC2
+→ Add Slack notifications
+→ Add an Elastic IP for a permanent server address
+→ Add Blue/Green deployment strategy
+
+## Author
+
+**Usmaan Mohd**
+
+- LinkedIn: linkedin.com/in/usmaan-mohd-77149b309
+- GitHub: github.com/UsmaanMohd
+
+⭐ If you found this project helpful, please give it a star on GitHub!
