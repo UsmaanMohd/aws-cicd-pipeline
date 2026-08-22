@@ -3,23 +3,24 @@ Project Overview
 This project demonstrates a fully automated CI/CD (Continuous Integration and Continuous Deployment) pipeline built on AWS cloud infrastructure. Every time code is pushed to GitHub, Jenkins automatically builds, tests, and deploys the application to AWS EC2 — with zero manual intervention!
 
 🎯 Problem This Project Solves
-Before CI/CD (Manual Way):
-Developer writes code
-Someone manually downloads it
-Someone manually builds it
-Someone manually tests it
-Someone manually deploys it
-Takes hours or days
-Human errors happen frequently
-Inconsistent deployments
 
-After CI/CD (This Project):
-Developer writes code
-Types: git push
-Everything else happens automatically
-Deployed within a minute
-Zero human errors
-Consistent every time
+**Before CI/CD (Manual Way):**
+* Developer writes code
+* Someone manually downloads it
+* Someone manually builds it
+* Someone manually tests it
+* Someone manually deploys it
+* Takes hours or days
+* Human errors happen frequently
+* Inconsistent deployments
+
+**After CI/CD (This Project):**
+* Developer writes code
+* Types: git push
+* Everything else happens automatically
+* Deployed within a minute
+* Zero human errors
+* Consistent every time
 
 🏗️ Architecture
 Developer Laptop
@@ -51,7 +52,7 @@ SNS Email Alerts
 
 ---
 
-## Tools & Technologies Used
+## 🛠️ Tools & Technologies Used
 
 ### AWS Services:
 | Service | Purpose |
@@ -77,7 +78,7 @@ SNS Email Alerts
 
 ---
 
-## Pipeline Stages
+## 📋 Pipeline Stages
 
 ### Stage 1: Checkout
 ```
@@ -114,7 +115,7 @@ Verifies deployment was successful
 Pipeline marked as SUCCESS ✅
 ```
 
-## Infrastructure Setup
+## 🔧 Infrastructure Setup
 
 **VPC Configuration:**
 ```
@@ -146,7 +147,7 @@ CloudWatchAgentServerPolicy
 AmazonEC2ContainerRegistryFullAccess
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 | File | Purpose |
 |------|---------|
@@ -157,7 +158,7 @@ AmazonEC2ContainerRegistryFullAccess
 | .dockerignore | Files excluded from Docker |
 | README.md | Project documentation |
 
-## Docker Configuration
+## 🐳 Docker Configuration
 
 **Dockerfile:**
 ```dockerfile
@@ -176,7 +177,7 @@ CMD ["node", "app.js"]
 - Easy to scale and update
 - No "works on my machine" problem
 
-## Jenkins Pipeline (Jenkinsfile)
+## ⚙️ Jenkins Pipeline (Jenkinsfile)
 
 ```groovy
 pipeline {
@@ -224,7 +225,7 @@ pipeline {
 }
 ```
 
-## Monitoring & Alerting
+## 📊 Monitoring & Alerting
 
 **CloudWatch Alarm:**
 ```
@@ -243,7 +244,7 @@ Trigger: CloudWatch alarm
 Result: Instant email alert
 ```
 
-## How to Run This Project
+## 🚀 How to Run This Project
 
 **Prerequisites:**
 ✅ AWS Account
@@ -330,13 +331,13 @@ git push origin main
 # Watch Jenkins automatically deploy! 🎉
 ```
 
-## Challenges Faced & How I Solved Them
+## 🐛 Challenges Faced & How I Solved Them
 
 - **Jenkins node going offline due to disk space threshold:** Jenkins's built-in disk-space monitor marked the built-in node offline because AWS's default `/tmp` tmpfs partition (~955 MB) is smaller than Jenkins's default 1 GB free-space threshold — even though actual disk usage was very low. Fixed by lowering the free-space threshold in Jenkins's node configuration (Manage Jenkins → Nodes → Built-In Node → Configure).
 - **Pipeline failing at the "Run Tests" stage:** `npm init` generated a default `package.json` with `"test": "echo \"Error: no test specified\" && exit 1"`, which always fails since no real test suite exists yet. Fixed by updating the script to `exit 0`. Also found and fixed a mismatch where `package.json`'s `main` field pointed to `index.js` while the actual server file was `app.js`.
 - **EC2 Public IP changing after stop/start:** Since an Elastic IP wasn't attached, stopping and restarting the EC2 instance assigned a new public IP each time, breaking the GitHub webhook and SSH access. Solved by updating the Security Group's SSH source, the webhook payload URL, and Jenkins/app URLs each time — and identified attaching an Elastic IP as the permanent fix for production use.
 
-## Results & Achievements
+## 📈 Results & Achievements
 
 ✅ Fully automated deployment on every `git push`
 ✅ Manual deployment work eliminated
@@ -346,7 +347,7 @@ git push origin main
 ✅ Containerized application with Docker
 ✅ Infrastructure built from scratch on AWS (VPC, EC2, IAM, Security Groups)
 
-## Key Learnings
+## 💡 Key Learnings
 
 - How CI/CD eliminates manual deployments
 - Docker containerization and image layer caching in production
@@ -358,7 +359,7 @@ git push origin main
 - Linux server management
 - Real-world debugging of CI/CD pipeline failures
 
-## Future Improvements
+## 🔮 Future Improvements
 
 → Add Kubernetes (EKS) for orchestration
 → Add Terraform for infrastructure as code
@@ -369,7 +370,7 @@ git push origin main
 → Add an Elastic IP for a permanent server address
 → Add Blue/Green deployment strategy
 
-## Author
+## 👨‍💻 Author
 
 **Usmaan Mohd**
 
