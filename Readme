@@ -22,7 +22,7 @@ This project demonstrates a fully automated CI/CD (Continuous Integration and Co
 * Zero human errors
 * Consistent every time
 
-🏗️ Architecture
+Architecture
 Developer Laptop
        |
        | git push

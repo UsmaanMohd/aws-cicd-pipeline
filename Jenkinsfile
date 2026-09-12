@@ -33,6 +33,7 @@ pipeline {
                 sh 'docker run -d --name ${APP_NAME} -p ${APP_PORT}:${APP_PORT} ${APP_NAME}:latest'
             }
         }
+        
         stage('Verify Deployment') {
             steps {
                 sh 'docker ps | grep ${APP_NAME}'
